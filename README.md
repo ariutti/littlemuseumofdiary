@@ -1,9 +1,24 @@
-Little Museum of Diary
-===================
-The doors of the Piccolo Museo del Diario will open to the public as part of the events surrounding the **29th edition of the Pieve Saverio Tutino Award**.  
-It includes a preview of the **interactive exhibition: L’Archivio**,  the first step in the creation of a multimedia exhibition pathway commissioned by the Fondazione Archivio Diaristico Nazionale and the  City Council of Pieve Santo Stefano in Tuscany to poetically illustrate the diaries, the letter exchanges, the autobiographical memories of unknown people who left behind calligraphic traces of their lives.  
-The exhibit is a tribute to the soul of the L’Archivio and is a wonderful melting pot of memories, confessions and secrets hidden on the shelves and in the drawers, just waiting to be revealed.
+# README
 
-![img](http://dotdotdot.it/en/wp-content/uploads/sites/2/2013/10/FMD01.jpg)
+23 Luglio - 4 Agosto
+intervanto di manutenzione diari
 
-**More info:** [http://dotdotdot.it/en/portfolio/little-museum-of-diary/](http://dotdotdot.it/en/portfolio/little-museum-of-diary/)
+## venerdì 14
+sopralluogo tecnico con fotografie
+
+disegno delle nuove shield
+poi adattamento software 
+
+raspberry 22
+(modifica con aggiunta di un bottone)
+
+Software è su drive
+
+* 5gg per integrazione software CMS (fai una cosa veloce 1gg desisderata)
+* 4gg nuovo hardware adattamento
+* 5gg una persona + 2gg montaggio
+
+I tasti sono i salti tra i capitoli
+Apri il casetto parte il video
+
+il tasto cambia file selezionado l'inglese 
