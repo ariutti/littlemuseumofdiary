@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import RPi.GPIO as GPIO #ok
+import RPi.GPIO as GPIO
 import time
 
-myPins = [4,24,25]
+myPins = [5,13,6]
 
 GPIO.setmode(GPIO.BCM)
 

@@ -15,7 +15,26 @@ def readadc(adcnum):
 	#val = (int)(4800/(adcout - 20)) #sharp linearization
 	#return val
 	return adcout
-  
+	
+def getDistance( raw ):
+	global linearDistance
+	if( raw > 0):
+		#linearDistance = (6787.0/(raw - 3))-4
+		linearDistance = (6787.0/(raw*0.66 -3))-4
+	return linearDistance
+
+def getVoltage( raw ):
+	return raw * (3.3 / 1024)
+
+
+A = 0.3
+B = 1.0 - A
+filtered = 0
+def filter(raw):
+	global filtered
+	value = raw*A + filtered*B
+	filtered = value
+	return filtered
  
  
 if __name__ == "__main__":
@@ -38,6 +57,7 @@ if __name__ == "__main__":
 	
 	while(1):
 		val = readadc(0)
-		print( val )
+		print( "{}\t{}\t{}".format(val, round(getVoltage(val),2), round(getDistance( filter(val) ) )))
+		
 		time.sleep( PAUSE )
 		

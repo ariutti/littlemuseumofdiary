@@ -10,7 +10,7 @@ device = 1 #chip select pin
 PAUSE = 0.05
 
 #filter coefficients
-A = 0.05
+A = 0.1
 B = 1.0 - A
 filtered = 0
 #filter stuff
@@ -44,7 +44,8 @@ def filter( raw ):
 def linearize( raw ):
 	global linearDistance
 	if( raw > 0):
-		linearDistance = (6787.0/(raw - 3))-4
+		#linearDistance = (6787.0/(raw - 3))-4
+		linearDistance = (6787.0/(raw*0.66 -3))-4
 	return linearDistance
 
 
