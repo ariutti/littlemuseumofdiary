@@ -1,26 +1,35 @@
-import RPi.GPIO as GPIO
-import time
+"""
+Sensore digitale per la selezione dei capitoli.
+Attualmente identificati nei sensori Sharp con driver Pololu 810.
+La classe implementa un sistema per risolvere i noiosi falsi positivisi con un debounce software.
 
-class DebounceButton:
-	# init method needs GPIO channels and debounce time (milliseconds) parameters
-	def __init__(self, channel, debounceDelay):
-		self.channel = channel
+"""
+import time
+import RPi.GPIO as GPIO
+
+class DigitalSwitch:
+
+	def __init__(self, pin, debounceDelay):
+		self.pin = pin
 		self.debounceDelay = debounceDelay / 1000.0
 		self.lastDebounceTime = 0
 		self.status = GPIO.HIGH
 		self.lastStatus = GPIO.HIGH
 		self.reading = None
-		GPIO.setup( self.channel, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		
+		GPIO.setmode(GPIO.BCM)
+		# TODO: disable default pullup/pulldown
+		GPIO.setup( self.pin, GPIO.IN)
+
 	def update(self):
-		self.reading = GPIO.input( self.channel )
+		self.reading = GPIO.input( self.pin )
 		#print( self.reading )
+
 		if self.reading != self.lastStatus:
 			#print( "reading diverso da last status")
 			self.lastDebounceTime = time.time()
-		
+
 		self.lastStatus = self.reading
-			
+
 		if (time.time() - self.lastDebounceTime) > self.debounceDelay :
 			#print( "debounce time strascorso")
 			# whatever the reading is at, it's been there for longer than the debounce
@@ -28,10 +37,8 @@ class DebounceButton:
 			if self.reading != self.status:
 				self.status = self.reading
 				#print( "Channel {} status: {}".format(self.channel, self.status) )
-				
+
 				# eventually call a callback function here
-		
-		
-		
+
 	def getStatus(self):
 		return self.status
