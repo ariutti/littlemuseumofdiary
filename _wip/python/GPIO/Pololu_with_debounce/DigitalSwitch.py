@@ -45,8 +45,6 @@ class DigitalSwitch:
 					if self.callbackFunc != None:
 						self.callbackFunc( self.index )
 
-	def getIndex(self):
-		return self.index
-		
+					
 	def getStatus(self):
 		return self.status

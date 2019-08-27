@@ -1,0 +1,5 @@
+;FFMETADATA1
+major_brand=mp42
+minor_version=0
+compatible_brands=mp42mp41
+encoder=Lavf58.20.100

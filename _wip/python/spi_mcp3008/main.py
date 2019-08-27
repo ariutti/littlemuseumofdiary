@@ -57,7 +57,7 @@ if __name__ == "__main__":
 	
 	while(1):
 		val = readadc(0)
-		print( "{}\t{}\t{}".format(val, round(getVoltage(val),2), round(getDistance( filter(val) ) )))
+		#print( "{}\t{}\t{}".format(val, round(getVoltage(val),2), round(getDistance( filter(val) ) )))
 		
 		time.sleep( PAUSE )
 		

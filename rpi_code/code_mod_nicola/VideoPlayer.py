@@ -2,14 +2,14 @@
 La classe gestisce il player video, questo può essere OMX o VLC a seconda dei casi.
 """
 
-import time
+import time, re
 import subprocess as sp
 from omxplayer.player import OMXPlayer
 import vlc, mouse
 
 class VideoPlayer:
 
-	def __init__(self, VIDEO_NAME, USING_VLC = False, audioPlayerRef=None, pygameRef=None):
+	def __init__(self, VIDEO_NAME, IMAGE_WIDTH, IMAGE_HEIGHT, USING_VLC = False, audioPlayerRef=None, pygameRef=None):
 
 		self.USING_VLC = USING_VLC
 		self.VIDEO_FILE = VIDEO_NAME
@@ -32,7 +32,7 @@ class VideoPlayer:
 			# Pass pygame window id to vlc player, so it can render its contents there.
 			win_id = pygameRef.display.get_wm_info()['window']
 			self.player.set_xwindow(win_id)
-			self.player.set_media(media)
+			self.player.set_media(self.media)
 
 			# TODO: correct the line below
 			mouse.move(IMAGE_WIDTH, IMAGE_HEIGHT, True, 0)
@@ -47,9 +47,9 @@ class VideoPlayer:
 
 		# info about video
 		self.info_video = {}
-		self.chapters = get_chapters()
+		self.chapters = self.get_chapters()
 		self.curr_chapter = 0
-		print('info video', chapters)
+		print('info video', self.chapters)
 
 	def start(self):
 		print("Starting video...")
@@ -57,7 +57,8 @@ class VideoPlayer:
 		self.PAUSED = False
 
 		if self.USING_VLC:
-			player.play()
+			print("VLC: Video player start")
+			self.player.play()
 		else:
 			if self.player:
 				self.player.quit()
@@ -85,20 +86,20 @@ class VideoPlayer:
 		if chapter != 0:
 			if self.PAUSED == True:
 				if self.USING_VLC:
-					self.layer.set_pause(0)
+					self.player.set_pause(0)
 				else:
 					if self.player:
 						self.player.play()
 				self.PAUSED = False
 			if self.USING_VLC:
-				handle_chapter_vlc(chapter)
+				self.handle_chapter_vlc(chapter)
 			else:
-				handle_chapter(chapter)
+				self.handle_chapter(chapter)
 
 		if self.USING_VLC:
 			if  self.player.get_length() - self.player.get_time() < 2000 and not self.PAUSED:
 				self.PAUSED = True
-				vlcPlayer.set_pause(1)
+				self.player.set_pause(1)
 		else:
 			if  self.player.duration() - self.player.position() < 2 and not self.PAUSED:
 				print('...pausing video')
@@ -106,8 +107,8 @@ class VideoPlayer:
 				self.player.pause()
 
 			# return to italian language
-			if audioPlayerRef:
-				audioPlayerRef.SwitchToITA()
+			if self.audioPlayerRef:
+				self.audioPlayerRef.SwitchToITA()
 
 	def isPlaying(self):
 		return self.STARTED
@@ -165,13 +166,13 @@ class VideoPlayer:
 			print('going to', cpt['start'])
 			self.player.set_position(cpt['start'])
 			time.sleep(1)
-			audioPlayerRef.stop()
+			self.audioPlayerRef.stop()
 			if c == 1:
-				audioPlayerRef.start()
+				self.audioPlayerRef.start()
 			self.curr_chapter = c
 
 	# vlc handle_chapter
-	def handle_chapter_vlc(c):
+	def handle_chapter_vlc(self, c):
 		print('going to', len(self.chapters), c)
 		if len(self.chapters) == 2:
 			if c == 3:
@@ -182,9 +183,9 @@ class VideoPlayer:
 				self.player.set_chapter(0)
 		else:
 			self.player.set_chapter(c - 1)
-		audioPlayerRef.stop()
+		self.audioPlayerRef.stop()
 		if c == 1:
-			audioPlayerRef.start()
+			self.audioPlayerRef.start()
 		self.curr_chapter = c
 
 	def kill(self):

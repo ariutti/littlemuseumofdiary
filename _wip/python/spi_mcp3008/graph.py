@@ -7,10 +7,10 @@ import matplotlib.animation as animation
 # SPI
 bus = 0
 device = 1 #chip select pin
-PAUSE = 0.05
+PAUSE = 0.005
 
 #filter coefficients
-A = 0.1
+A = 0.3
 B = 1.0 - A
 filtered = 0
 #filter stuff

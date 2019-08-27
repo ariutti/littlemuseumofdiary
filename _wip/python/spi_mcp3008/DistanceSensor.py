@@ -121,8 +121,7 @@ class DistanceSensor:
 				# per ovviare a falsi positivi MOTION
 				self.MIN = self.MIN + self.HYSTERESIS
 				# call the callback
-				if self.closeCallback != None:
-					self.closeCallback()
+				#self.closeCallback()
 				self.printStatus()
 			elif self.value >= self.MAX and self.status != self.OPENED:
 				#print("case B")
@@ -131,8 +130,7 @@ class DistanceSensor:
 				# per ovviare a falsi positivi MOTION
 				self.MAX = self.MAX - self.HYSTERESIS
 				# call the callback
-				if self.openCallback != None:
-					self.openCallback()
+				#self.openCallback()
 				self.printStatus()
 			elif self.value > self.MIN and self.value <self.MAX and self.status != self.MOTION:
 				#print("case C")
@@ -160,8 +158,7 @@ class DistanceSensor:
 				# per ovviare a falsi positivi MOTION
 				self.MIN = self.MIN + self.HYSTERESIS
 				# call the callback
-				if self.openCallback != None:
-					self.openCallback()
+				#self.openCallback()
 				self.printStatus()
 			elif self.value >= self.MAX and self.status != self.CLOSED:
 				self.status = self.CLOSED
@@ -169,8 +166,7 @@ class DistanceSensor:
 				# per ovviare a falsi positivi MOTION
 				self.MAX = self.MAX - self.HYSTERESIS
 				# call the callback
-				if self.closeCallback != None:
-					self.closeCallback()
+				#self.closeCallback()
 				self.printStatus()
 			elif self.value > self.MIN and self.value <self.MAX and self.status != self.MOTION:
 				# coming from a closed status

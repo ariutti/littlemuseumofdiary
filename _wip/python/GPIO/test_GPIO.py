@@ -3,7 +3,7 @@
 import RPi.GPIO as GPIO
 import time
 
-myPins = [5,13,6, 19]
+myPins = [5,6,13] # and 19
 PAUSE = 0.0125
 
 GPIO.setmode(GPIO.BCM)
@@ -16,10 +16,12 @@ try:
 	while(1):
 		#read the input
 		values = [GPIO.input(pin) for pin in myPins]
+		"""
 		for v in values:
 			if v == 0:
 				print( "falso positivo")
-		#print( values )
+		"""
+		print( values )
 		time.sleep(PAUSE)
 		"""
 		for pin in myPins:
@@ -30,6 +32,4 @@ try:
 except:
 	print("cleanup")
 	GPIO.cleanup()
-	
-	
 	
