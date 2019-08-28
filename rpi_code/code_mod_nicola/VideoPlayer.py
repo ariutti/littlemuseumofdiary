@@ -1,5 +1,7 @@
 """
 La classe gestisce il player video, questo può essere OMX o VLC a seconda dei casi.
+AL momento l'implementazione corretta di OMX non è ancora correttamente funzionante,
+c'è ancora un po' da lavorarci.
 """
 
 import time, re
@@ -20,10 +22,11 @@ class VideoPlayer:
 
 		if self.USING_VLC:
 			if( pygameRef == None):
-				print("Error: don't have a reference to pygame window!")
+				print("VIDEOPLAYER ERROR: don't have a reference to pygame window!")
 
 			self.vlcInstance = vlc.Instance()
-			self.media = self.vlcInstance.media_new('/home/pi/code/' + self.VIDEO_FILE)
+			#tmp (remove comment here) self.media = self.vlcInstance.media_new('/home/pi/code/' + self.VIDEO_FILE)
+			self.media = self.vlcInstance.media_new(self.VIDEO_FILE)
 
 			# Create new instance of vlc player
 			self.player = self.vlcInstance.media_player_new()
@@ -43,21 +46,23 @@ class VideoPlayer:
 
 		self.STARTED = False
 		self.PAUSED  = False
-
+		if( self.USING_VLC ):
+			print("VIDEOPLAYER: using VLC" )
+		else:
+			print("VIDEOPLAYER: using OMX" )
 
 		# info about video
 		self.info_video = {}
 		self.chapters = self.get_chapters()
 		self.curr_chapter = 0
-		print('info video', self.chapters)
+		print('VIDEOPLAYER: info video \n\t# chapter:{}\n\t{}'.format(len(self.chapters), self.chapters) )
 
 	def start(self):
-		print("Starting video...")
+		print("VIDEOPLAYER: Starting video...")
 		self.STARTED = True
 		self.PAUSED = False
 
 		if self.USING_VLC:
-			print("VLC: Video player start")
 			self.player.play()
 		else:
 			if self.player:
@@ -67,8 +72,10 @@ class VideoPlayer:
 		time.sleep(1)
 
 	def stop(self):
-		print("Stopping video...")
+		print("VIDEOPLAYER: Stopping video...")
 		self.STARTED = False
+		#TODO: is it necessary
+		#self.PAUSED = True
 		if self.USING_VLC:
 			self.player.stop()
 		else:
@@ -76,26 +83,50 @@ class VideoPlayer:
 			self.player = None
 
 	def pause(self):
-		print("Pausing video...")
+		print("VIDEOPLAYER: Pausing video...")
 		# TODO: add some code here??
+		#self.PAUSED = True #??
 
 	def needUpdate(self):
 		return (self.STARTED and self.player)
+		
+	def update(self):
+		#print("VIDEOPLAYER: update")
+		if self.USING_VLC:
+			if  self.player.get_length() - self.player.get_time() < 2000 and not self.PAUSED:
+				print("VIDEOPLAYER VLC: a due secondi dalla fine")
+				self.PAUSED = True
+				self.player.set_pause(1)
+		else:
+			if  self.player.duration() - self.player.position() < 2 and not self.PAUSED:
+				print('VIDEOPLAYER OMX: a due secondi dalla fine')
+				self.PAUSED = True
+				self.player.pause()
+		#self.printStatus()
 
-	def update(self, chapter):
+	def printStatus(self):
+		print("VIDEOPLAYER: started {}, paused {}".format(self.STARTED, self.PAUSED ) )
+
+	def changeChapter(self, chapter):
+		print("VIDEOPLAYER: change chapter") 
 		if chapter != 0:
-			if self.PAUSED == True:
-				if self.USING_VLC:
-					self.player.set_pause(0)
-				else:
-					if self.player:
-						self.player.play()
-				self.PAUSED = False
+			print("VIDEOPLAYER: chapter != 0") 
+			# in origin era così riga commentata)
+			#if self.PAUSED == True:
+			#if self.PAUSED == False:
+			#print("VIDEOPLAYER: paused is true")
+			if self.USING_VLC:
+				self.player.set_pause(0)
+			else:
+				if self.player:
+					self.player.play()
+			self.PAUSED = False
+				
 			if self.USING_VLC:
 				self.handle_chapter_vlc(chapter)
 			else:
-				self.handle_chapter(chapter)
-
+				self.handle_chapter_omx(chapter)
+		"""
 		if self.USING_VLC:
 			if  self.player.get_length() - self.player.get_time() < 2000 and not self.PAUSED:
 				self.PAUSED = True
@@ -105,10 +136,14 @@ class VideoPlayer:
 				print('...pausing video')
 				self.PAUSED = True
 				self.player.pause()
-
-			# return to italian language
-			if self.audioPlayerRef:
-				self.audioPlayerRef.SwitchToITA()
+				
+		"""
+		"""
+		#not using language right now
+		# return to italian language
+		if self.audioPlayerRef:
+			self.audioPlayerRef.switchToITA()
+		"""
 
 	def isPlaying(self):
 		return self.STARTED
@@ -120,11 +155,10 @@ class VideoPlayer:
 		if self.player:
 			self.player.set_position(0)
 
-
 	# get all chapters of video file
 	def get_chapters(self):
 		buff = sp.check_output(["ffmpeg", "-i", self.VIDEO_FILE, "-f",'ffmetadata', "file.txt", '-y'], stderr=sp.STDOUT, universal_newlines=True)
-		print(buff)
+		#print(buff)
 		self.chapters = []
 		self.chapters_info = {}
 		names = []
@@ -155,25 +189,9 @@ class VideoPlayer:
 		if pos > self.chapters[len(self.chapters) - 1]['end']:
 			return self.chapters[len(self.chapters) - 1]['name']
 
-	# chapter manager
-	def handle_chapter(self, c):
-		self.curr_chapter = pos2chapter(self.player.position())
-		print('Handle chapter: from', self.curr_chapter, 'to', c)
-		# ~ if c != curr_chapter and c in [f['name'] for f in chapters]:
-		if c in [f['name'] for f in self.chapters]:
-			cpt = self.chapters[[y for y, x in enumerate(self.chapters) if x['name'] == c][0]]
-			time.sleep(1)
-			print('going to', cpt['start'])
-			self.player.set_position(cpt['start'])
-			time.sleep(1)
-			self.audioPlayerRef.stop()
-			if c == 1:
-				self.audioPlayerRef.start()
-			self.curr_chapter = c
-
-	# vlc handle_chapter
+	# vlc chapter manager
 	def handle_chapter_vlc(self, c):
-		print('going to', len(self.chapters), c)
+		print('VIDEOPLAYER VLC: going to', len(self.chapters), c)
 		if len(self.chapters) == 2:
 			if c == 3:
 				print(1)
@@ -187,6 +205,22 @@ class VideoPlayer:
 		if c == 1:
 			self.audioPlayerRef.start()
 		self.curr_chapter = c
+
+	# chapter manager
+	def handle_chapter_omx(self, c):
+		self.curr_chapter = self.pos2chapter(self.player.position())
+		print('VIDEOPLAYER OMX: Handle chapter: from', self.curr_chapter, 'to', c)
+		# ~ if c != curr_chapter and c in [f['name'] for f in chapters]:
+		if c in [f['name'] for f in self.chapters]:
+			cpt = self.chapters[[y for y, x in enumerate(self.chapters) if x['name'] == c][0]]
+			time.sleep(1)
+			print('going to', cpt['start'])
+			self.player.set_position(cpt['start'])
+			time.sleep(1)
+			self.audioPlayerRef.stop()
+			if c == 1:
+				self.audioPlayerRef.start()
+			self.curr_chapter = c
 
 	def kill(self):
 		print("Kill video...")

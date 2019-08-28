@@ -11,14 +11,19 @@ import subprocess as sp
 USE_VLC = True
 USE_CHAPTERS = True
 USE_LANGUAGE = False
-USE_NETWORK = False
+USE_NETWORK = True
+
+# a pause for the cover image to stay at full screen 
+# after having opend the drawer
+COVER_PAUSE = 2
 
 ## INTERRUTTORI DIGITALI
 # imported only to do the cleanup
 import RPi.GPIO as GPIO
 # a test callback func
 def callbackFunction( index ):
-	print( "this is the index of the button pressed: {}".format(index) )
+	print( "MAIN: chapter callback, this is the index of the button pressed: {}".format(index) )
+	videoPlayer.changeChapter( index+1 )
 from DigitalSwitch import DigitalSwitch
 chSwitches = []
 # buttons input
@@ -37,14 +42,38 @@ R_SENSOR_ID = 0
 R_SENSOR_MIN = 15
 # value when far
 R_SENSOR_MAX = 35
+# HYSTERESIS
+R_SENSOR_HYS = 5 #cm
+# FILTER COEFFICIENT A
+R_SENSOR_COEFFA = 0.2
+# DIRECTION (True: looking to the wall, False: looking to the people)
+R_SENSOR_DIR = True
+
 #define open and close callbacks
 def openCallback():
 	print("MAIN: open callback")
+	# adding a pause here to show the cover for a longer time
+	print("MAIN: start cover pause")
+	time.sleep(2)
+	print("MAIN: end cover pause")
+	if not videoPlayer.isPlaying():
+		print("MAIN: start audio and video")
+		videoPlayer.start()
+		sendUDP(b'1') # open
+		time.sleep(1)
+		audioPlayer.start()
+
+		pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
+		screen.fill((0,0,0))
+		pygame.display.update()
 
 def closeCallback():
 	print("MAIN: close callback")
-# sensor ID, MIN, MAX, HYSTERESIS, FILTER COEFF (A), DIRECTION (True: looking to the wall, False: looking to the people)
-sharp = DistanceSensor(R_SENSOR_ID,R_SENSOR_MIN,R_SENSOR_MAX,5,0.2,True, openCallback, closeCallback)
+	sendUDP(b'0') # closed
+	
+	
+# sensor ID, MIN, MAX, HYSTERESIS, FILTER COEFF (A), DIRECTION 
+sharp = DistanceSensor(R_SENSOR_ID,R_SENSOR_MIN,R_SENSOR_MAX,R_SENSOR_HYS,R_SENSOR_COEFFA,R_SENSOR_DIR, openCallback, closeCallback)
 
 from AudioPlayer import AudioPlayer
 audioPlayer = None
@@ -54,13 +83,13 @@ videoPlayer = None
 
 # get index of button pressed
 def read_buttons():
-	print("read buttons")
+	#print("read buttons")
 	#TODO: riscrivila un po' meglio non si capisce nulla
 	#button = [x for x in GPIO_SENSORS if not(GPIO.input(x))]
 	#return 0 if not button else GPIO_SENSORS.index(button[0])+1
 	
 	button = [x.getIndex() for x in chSwitches if not(x.getStatus())]
-	print( button )
+	#print( button )
 	if not button:
 		return 0
 	else:
@@ -119,7 +148,7 @@ def sendUDP(value):
 		sock.sendto(value, (ADDR, PORT))
 
 def killAll():
-	print(" MAIN: KILL ALL")
+	print("MAIN: kill all")
 	pygame.quit()
 	time.sleep(2)
 	if videoPlayer.isPlaying():
@@ -131,14 +160,14 @@ def killAll():
 	quit()
 
 def hardKill():
-	print("MAIN: HARD KILL")
+	print("MAIN: hard kill")
+	time.sleep(1)
+	sp.Popen('sudo killall aplay', stdout=sp.PIPE, shell=True)
+	sp.Popen('sudo killall omxplayer; sudo killall omxplayer.bin', stdout=sp.PIPE, shell=True)
 	sp.Popen('sudo pkill -9 -f python3 && sudo pkill -9 -f omxplayer', stdout=sp.PIPE, shell=True)
-
 	# TODO: add an hard kill for audio ??
 	# TODO: add hard kill for video VLC ??
 	# TODO: maybe call the killAll ??
-	
-	
 
 
 ## MAIN ################################################################
@@ -168,6 +197,7 @@ if __name__ == "__main__":
 	# init rendering screen
 	displaymode = (IMAGE_WIDTH, IMAGE_HEIGHT)
 	screen = pygame.display.set_mode(displaymode)
+	pygame.display.toggle_fullscreen()
 
 	# load cover image
 	cover = pygame.image.load(IMAGE_NAME).convert()
@@ -188,7 +218,7 @@ if __name__ == "__main__":
 		try:
 			if areThereNewInputsDevices():
 				hardKill()
-				#killAll()
+				killAll()
 
 			# update digital switches
 			if USE_CHAPTERS:
@@ -199,7 +229,9 @@ if __name__ == "__main__":
 				langSwitch.update()
 			# update distance sensor
 			sharp.update()
-
+			
+			videoPlayer.update()
+			
 			"""
 			if videoPlayer.needUpdate():
 				# menage language
@@ -214,8 +246,13 @@ if __name__ == "__main__":
 					videoPlayer.update( chapter )
 				else:
 					videoPlayer.update( 0 ) # will it work??
-
+					
+					
+			"""
+			"""
 			if sharp.isOpen():
+				print("sharp is open")
+				
 				if not videoPlayer.isPlaying():
 					print("MAIN: start audio and video")
 					videoPlayer.start()
@@ -226,13 +263,18 @@ if __name__ == "__main__":
 					pygame.mouse.set_cursor((8,8),(0,0),(0,0,0,0,0,0,0,0),(0,0,0,0,0,0,0,0))
 					screen.fill((0,0,0))
 					pygame.display.update()
+				
 
 			elif sharp.isClosed():
+				print("sharp is close")
 				sendUDP(b'0') # closed
-
+				
 			else:
+			"""
+			if sharp.isMotion():
 				print("MAIN: stop audio and video")
 				sendUDP(b'2') # motion
+				print("distance cm: {}".format(sharp.getValue()) )
 				if videoPlayer.isPlaying():
 					videoPlayer.stop()
 					audioPlayer.stop()
@@ -244,7 +286,7 @@ if __name__ == "__main__":
 					cover_position = pygame.Rect(0, new_value, IMAGE_WIDTH, IMAGE_HEIGHT)
 					screen.blit(cover, cover_position)
 					pygame.display.update()
-			"""
+			
 			# TODO: evaluate the line below (is it really useful??)
 			pygame.time.delay(20)
 

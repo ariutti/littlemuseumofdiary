@@ -69,18 +69,18 @@ class DistanceSensor:
 
 	def validateMinMaxHys(self):
 		if self.MIN >= self.MAX:
-			print("Errore nell'impostazioni di minimo e massimo")
+			print("DISTANCE SENS: Errore nell'impostazioni di minimo e massimo")
 
 		if self.MIN + self.HYSTERESIS > self.MAX:
-			print("Errore nell'impostazioni dell'isteresi")
+			print("DISTANCE SENS: Errore nell'impostazioni dell'isteresi")
 
 	def warmUp(self):
 		for i in range(20):
 			self.raw = self.readadc(self.adcchannel)
 			self.value = self.raw2cm(self.filter(self.raw))
-			print("warming up distance sensor... {}".format(self.value))
+			print("DISTANCE SENS: warming up distance sensor... {}".format(self.value))
 			time.sleep(0.0125)
-		print("Finish warm up phase")
+		print("DISTANCE SENS: Finish warm up phase")
 
 	def readadc(self, channel):
 		if ((channel > 7) or (channel < 0)):
@@ -115,40 +115,38 @@ class DistanceSensor:
 		if self.DIRECTION:
 			#print("direction is true")
 			if self.value <= self.MIN and self.status != self.CLOSED:
-				#print("case A")
 				self.status = self.CLOSED
 				# applica una isteresi sul valore minimo
 				# per ovviare a falsi positivi MOTION
 				self.MIN = self.MIN + self.HYSTERESIS
+				#print status insformation
+				self.printStatus()
 				# call the callback
 				if self.closeCallback != None:
 					self.closeCallback()
-				self.printStatus()
+
 			elif self.value >= self.MAX and self.status != self.OPENED:
-				#print("case B")
 				self.status = self.OPENED
 				# applica una isteresi sul valore massimo
 				# per ovviare a falsi positivi MOTION
 				self.MAX = self.MAX - self.HYSTERESIS
+				#print status insformation
+				self.printStatus()
 				# call the callback
 				if self.openCallback != None:
 					self.openCallback()
-				self.printStatus()
+
 			elif self.value > self.MIN and self.value <self.MAX and self.status != self.MOTION:
-				#print("case C")
 				# coming from a closed status
 				# we have to change the min hysteresis
 				if self.status == self.CLOSED:
-					#print("case C1")
 					self.MIN = self.MIN - self.HYSTERESIS
 				elif self.status ==  self.OPENED:
-					#print("case C2")
 					self.MAX = self.MAX + self.HYSTERESIS
 				# if we are between MIN and MAX at startup
 				# do nothing with these values
 				elif self.status == self.FIRSTTIMERUNNING:
-					#print("case C3")
-					print("startup in the middle of MIN, MAX: doing nothing with hysteresis")
+					print("DISTANCE SENS: startup in the middle of MIN, MAX: doing nothing with hysteresis")
 				# however change the status to MOTION
 				self.status = self.MOTION
 				self.printStatus()
@@ -159,19 +157,23 @@ class DistanceSensor:
 				# applica una isteresi sul valore minimo
 				# per ovviare a falsi positivi MOTION
 				self.MIN = self.MIN + self.HYSTERESIS
+				#print status insformation
+				self.printStatus()
 				# call the callback
 				if self.openCallback != None:
 					self.openCallback()
-				self.printStatus()
+
 			elif self.value >= self.MAX and self.status != self.CLOSED:
 				self.status = self.CLOSED
 				# applica una isteresi sul valore massimo
 				# per ovviare a falsi positivi MOTION
 				self.MAX = self.MAX - self.HYSTERESIS
+				#print status insformation
+				self.printStatus()
 				# call the callback
 				if self.closeCallback != None:
 					self.closeCallback()
-				self.printStatus()
+					
 			elif self.value > self.MIN and self.value <self.MAX and self.status != self.MOTION:
 				# coming from a closed status
 				# we have to change the min hysteresis
@@ -182,7 +184,7 @@ class DistanceSensor:
 				# if we are between MIN and MAX at startup
 				# do nothing with these values
 				elif self.status == self.FIRSTTIMERUNNING:
-					print("startup in the middle of MIN, MAX: doing nothing with hysteresis")
+					print("DISTANCE SENS: startup in the middle of MIN, MAX: doing nothing with hysteresis")
 				# however change the status to MOTION
 				self.status = self.MOTION
 				self.printStatus()
@@ -206,14 +208,14 @@ class DistanceSensor:
 
 	def printStatus(self):
 		if self.status == self.OPENED:
-			print("OPENED")
+			print("DISTANCE SENS: OPENED")
 		elif self.status == self.CLOSED:
-			print("CLOSED")
+			print("DISTANCE SENS: CLOSED")
 		elif self.status == self.MOTION:
-			print("MOTION")
+			print("DISTANCE SENS: MOTION")
 		else:
 			print("other")
-		print("HYS:{} - MIN:{} - MAX:{}".format(self.HYSTERESIS, self.MIN, self.MAX))
+		print("DISTANCE SENS: HYS:{} - MIN:{} - MAX:{}".format(self.HYSTERESIS, self.MIN, self.MAX))
 
 	def isOpen(self):
 		return self.status == self.OPENED
