@@ -1,7 +1,6 @@
 # README
 
-Per far girare correttamente il codice raspberry che utilizza il convertitore MCP3008 occorre dapprima abilitare 
-il modulo kernel SPI usando il menù "Preferences/Raspberry Pi Config" e indicare dal sottomenù "Interfaces" l'interfaccia SPI.
+Per far girare correttamente il codice raspberry che utilizza il convertitore MCP3008 occorre dapprima abilitare il modulo kernel SPI usando il menù "Preferences/Raspberry Pi Config" e indicare dal sottomenù "Interfaces" l'interfaccia SPI.
 
 ## listare i device SPI da terminale
 
@@ -55,4 +54,4 @@ Giusto per dare una idea:
 
 Da notare che il valore del coefficiente del filtro agisce facendo da passabasso ai valori letti ma questo valore va di pari passo con la frequenza con cui le letture vengono effettuate.
 Il filtro passabasso si comporta diversamente a seconda che le letture vengano fatte con maggiore o minore frequenza.
-Per cui occorre fare un fine tuning anche del tempo di attesa tra un loo ed un altro.
+Per cui occorre fare un fine tuning anche del tempo di attesa tra un loop ed un altro.

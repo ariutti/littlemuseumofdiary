@@ -29,7 +29,7 @@ chSwitches = []
 # buttons input
 GPIO_SENSORS = [5, 6, 13]
 GPIO_LANG = 19
-DEBOUNCE_DLY = 10 #ms
+DEBOUNCE_DLY = 300 #ms
 for i,pin in enumerate(GPIO_SENSORS):
 	chSwitches.append(DigitalSwitch(i,pin, DEBOUNCE_DLY, callbackFunction))
 langSwitch = DigitalSwitch(3,GPIO_LANG, DEBOUNCE_DLY,callbackFunction)
